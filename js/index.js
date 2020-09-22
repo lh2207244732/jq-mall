@@ -5,17 +5,16 @@
             this.$cartBox = $('.cart-box')
             this.$cartCount = $('.cart-count')
             this.$cartContent = $('.cart-content')
+            this.cartTimer = null
             this.handleCart()
                 // 搜索框
-                // this.$searchInput = $('.search-input')
-                // this.$searchVal = $('.search-input input')
-                // this.$searchBtn = $('.search-btn')
-                // this.$searchLayer = $('.search-layer')
-                // this.handSearch()
-                // 焦点区域
+            this.handSearch()
+
+            // 焦点区域
             this.$categories = $('.categories')
             this.$parentCategories = $('.parent-categories')
             this.$childCategories = $('.child-categories')
+            this.childcache = {}
             this.categoriesTimer = null
             this.handCategories()
 
@@ -63,30 +62,38 @@
             this.loadCartsCount()
                 // 当鼠标进入购物车时
             this.$cartBox.on('mouseenter', function() {
-                    // 显示下拉购物车
-                    _this.$cartContent.show()
-                        //添加等待框动画
-                    _this.$cartContent.html('<div class="loader"></div>')
-                        // 发送ajax请求
-                    utils.ajax({
-                        method: 'GET',
-                        url: '/carts',
-                        success: function(data) {
-                            if (data.code == 0) {
-                                // 如果状态码为0则请求成功，渲染请求内容
-                                _this.renderCart(data.data.cartList)
-                            } else {
-                                //请求失败
+                    if (this.cartTimer) {
+                        clearTimeout(this.cartTimer)
+                    }
+                    this.cartTimer = setTimeout(function() {
+                        // 显示下拉购物车
+                        _this.$cartContent.show()
+                            //添加等待框动画
+                        _this.$cartContent.html('<div class="loader"></div>')
+                            // 发送ajax请求
+                        utils.ajax({
+                            method: 'GET',
+                            url: '/carts',
+                            success: function(data) {
+                                if (data.code == 0) {
+                                    // 如果状态码为0则请求成功，渲染请求内容
+                                    _this.renderCart(data.data.cartList)
+                                } else {
+                                    //请求失败
+                                    _this.$cartContent.html('<span class="empty-cart">请求失败,请稍后再试</span>')
+                                }
+                            },
+                            error: function() {
                                 _this.$cartContent.html('<span class="empty-cart">请求失败,请稍后再试</span>')
                             }
-                        },
-                        error: function() {
-                            _this.$cartContent.html('<span class="empty-cart">请求失败,请稍后再试</span>')
-                        }
-                    })
+                        })
+                    }, 300)
                 })
-                // 隐藏下拉购物车
+                // 鼠标离开时隐藏下拉购物车
             this.$cartBox.on('mouseleave', function() {
+                if (this.cartTimer) {
+                    clearTimeout(this.cartTimer)
+                }
                 _this.$cartContent.hide()
             })
         },
@@ -131,84 +138,15 @@
         },
         //搜索框
         handSearch: function() {
-            var _this = this
-                // 监听点击搜索事件
-            this.$searchBtn.on('click', function() {
-                    _this.handClick()
-                })
-                // this.searchBtn.addEventListener('click', function() {
-                //         _this.handClick()
-                //     }, false)
-                // 监听输入事件,自动提示
-            this.searchVal.addEventListener('input', function() {
-                    // 防抖，多次输入，只执行最后一次
-                    if (_this.searchTimer) {
-                        console.log(111);
-                        clearInterval(_this.searchTimer)
-                    }
-                    _this.searchTimer = setTimeout(function() {
-                        _this.getSearchData()
-                    }, 500)
-                }, false)
-                // 点击其他地方时，隐藏下拉框
-            d.addEventListener('click', function() {
-                    utils.hide(_this.searchLayer)
-                }, false)
-                // 阻止输入框的点击操作冒泡
-            this.searchVal.addEventListener('click', function(ev) {
-                    ev.stopPropagation()
-                }, false)
-                // 监听重新获取光标时
-            this.searchVal.addEventListener('focus', function() {
-                // 获取输入框内容
-                var keyword = _this.searchVal.value
-                if (!keyword) {
-                    _this.searchLayer.innerHTML = ''
-                    utils.hide(_this.searchLayer)
-                } else {
-                    // 显示下拉框
-                    utils.show(_this.searchLayer)
-                }
-            }, false)
-
-
+            $('.serach-box').search({
+                searchInputSelector: '.search-input input',
+                searchBtnSelector: '.search-btn',
+                searchLayerSelector: '.search-layer',
+                url: '/products/search',
+                isAutocomplete: true
+            })
         },
-        getSearchData: function() {
-            var _this = this
-            var keyword = this.searchVal.value
-            if (!keyword) {
-                _this.searchLayer.innerHTML = ''
-                utils.hide(_this.searchLayer)
-            } else {
-                utils.ajax({
-                    url: '/products/search',
-                    data: {
-                        keyword: keyword
-                    },
-                    success: function(data) {
-                        if (data.code == 0) {
-                            _this.renderSearch(data.data)
-                        }
-                    }
-                })
-            }
-        },
-        renderSearch: function(list) {
-            var len = list.length
-            var html = ''
-            for (var i = 0; i < len; i++) {
-                html += `<li class="search-item">${list[i].name}</li>`
-            }
-            utils.show(this.searchLayer)
-            this.searchLayer.innerHTML = html
-        },
-        //点击搜索提交搜索内容
-        handClick: function() {
-            var keyword = this.searchVal.value
-            w.location.href = './list.html?keyword=' + keyword
-        },
-
-
+        // 焦点区域
         handCategories: function() {
             var _this = this
                 // 获取父级分类
@@ -216,44 +154,34 @@
 
             // 利用事件代理监听父元素中子元素的切换
             this.$parentCategories.on('mouseover', '.parent-categories-item', function() {
-                    // 储存本次鼠标移入的元素返回的jQuery对象
                     var $elem = $(this)
+                        // 防抖
                     if (_this.categoriesTimer) {
                         clearTimeout(_this.categoriesTimer)
                     }
-                    setTimeout(function() {
+                    $elem.addClass('active').siblings().removeClass('active')
+                    _this.categoriesTimer = setTimeout(function() {
+                        //     // 显示右侧面板
+                        _this.$childCategories.show()
+
                         //     // 获取触发事件元素的ID
                         var pid = $elem.data('id')
-                            //     // 显示右侧面板
-                        _this.$childCategories.show()
+                        if (_this.childcache[pid]) {
+                            // 渲染面板内容
+                            _this.renderChildCategoies(_this.childcache[pid])
+                        } else {
                             //     // 获取要生成的面板内容
-                        _this.getChildCategories(pid)
-
-                    }, 100)
+                            _this.getChildCategories(pid)
+                        }
+                    }, 300)
                 })
-                // this.parentCategories.addEventListener('mouseover', function(ev) {
-                //         //添加防抖
-                //         if (_this.categoriesTimer) {
-                //             clearTimeout(_this.categoriesTimer)
-                //         }
-                //         setTimeout(function() {
-                //             var elem = ev.target
-                //             if (elem.className == 'parent-categories-item') {
-                //                 // 获取触发事件元素的ID
-                //                 var pid = elem.getAttribute('data-id')
-                //                     // 显示右侧面板
-                //                 utils.show(_this.childCategories)
-                //                     // 获取要生成的面板内容
-                //                 _this.getChildCategories(pid)
-                //             }
-                //         }, 100)
-                //     }, false)
-                //     //监听鼠标移出事件
-                // this.categories.addEventListener('mouseleave', function() {
-                //     //清除右侧内容并隐藏右侧内容
-                //     _this.childCategories.innerHTML = ''
-                //     utils.hide(_this.childCategories)
-                // }, false)
+                .on('mouseleave', function() {
+                    if (_this.categoriesTimer) {
+                        clearTimeout(_this.categoriesTimer)
+                    }
+                    _this.$childCategories.hide().html('')
+                    _this.$parentCategories.find('.parent-categories-item').removeClass('active')
+                })
         },
         //获取父级分类
         getParentitems: function() {
@@ -262,7 +190,6 @@
                 url: '/categories/arrayCategories',
                 success: function(data) {
                     if (data.code == 0) {
-                        //渲染父级分类内容
                         _this.renderParentCategories(data.data)
                     } else {
                         _this.$parentCategories.html(data.messgae)
@@ -283,8 +210,9 @@
                 },
                 success: function(data) {
                     if (data.code == 0) {
-                        // 渲染面板内容
-                        console.log(111)
+                        // 缓存子类数据
+                        _this.childcache[pid] = data.data
+                            // 渲染面板内容
                         _this.renderChildCategoies(data.data)
                     }
                 }

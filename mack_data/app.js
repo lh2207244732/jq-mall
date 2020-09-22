@@ -35,7 +35,7 @@ app.get('/carts', function(req, res) {
                     "product": {
                         "_id": "@string('lower',24)",
                         "name": "@cword(3, 120)",
-                        "mainImage": "@image('200x200')",
+                        "mainImage": "@image('200x200',@color())",
                         "price|1-9999": 1,
                         "stock|1-9999": 1
                     },
