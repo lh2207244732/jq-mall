@@ -11,6 +11,7 @@
         this.now = 0
         this.playInterval = options.playInterval
         this.type = options.type
+        this.loadingurl = options.loadingurl
 
         this.$carouselImgs = null
         this.$leftArrow = null
@@ -42,9 +43,14 @@
             for (var i = 0; i < this.len; i++) {
                 var $carouselItem = $('<li></li>').addClass('carousel-item')
                 var $btn = $('<li></li>').html(i + 1)
-                var $img = $('<img>').attr('src', this.imgs[i])
-                $carouselItem.append($img)
+                    // var $img = $('<img>').attr('src', this.imgs[i])
 
+                var $img = $('<img>')
+                    // 每张图都设置为等待状态
+                    .attr('src', this.loadingurl)
+                    // 在图上储存图片地址
+                    .attr('data-src', this.imgs[i])
+                $carouselItem.append($img)
                 this.$carouselImgs.append($carouselItem)
                 this.$btns.append($btn)
             }
@@ -70,6 +76,17 @@
                 this.$elem.addClass('slide')
                 this.$carouselImgsChildren.eq(this.activeIndex).css({ left: 0 })
             }
+            // 轮播图懒加载处理
+            // 加载第一张图片
+            var $srcElem = this.$carouselImgsChildren.eq(this.activeIndex).find('img')
+                // 获取图片上的地址
+            var srcUrl = $srcElem.data('src')
+            var img = new Image()
+            img.onload = function() {
+                $srcElem.attr('src', srcUrl)
+            }
+            img.src = srcUrl
+
         },
         bindEvent: function() {
             var _this = this
@@ -156,7 +173,8 @@
         width: 800,
         height: 400,
         playInterval: 5000,
-        type: 'fade'
+        type: 'fade',
+        loadingurl: './images/load.gif'
     }
     $.fn.extend({
         carousel: function(options) {

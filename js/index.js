@@ -272,7 +272,8 @@
                 width: 800,
                 height: 440,
                 playInterval: 0,
-                type: 'fade'
+                type: 'slide',
+                // loadingurl: '../images/load.gif'
             })
         },
         // 热销商品区域
