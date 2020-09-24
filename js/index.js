@@ -1,13 +1,13 @@
-(function(w, d) {
+(function (w, d) {
     var page = {
-        init: function() {
+        init: function () {
             // 顶部购物车
             this.$cartBox = $('.cart-box')
             this.$cartCount = $('.cart-count')
             this.$cartContent = $('.cart-content')
             this.cartTimer = null
             this.handleCart()
-                // 搜索框
+            // 搜索框
             this.handSearch()
 
             // 焦点区域
@@ -31,66 +31,66 @@
             this.$floor = $('.floor')
             this.$elevator = $('.elevator')
             this.handFloor()
-                // this.handElevator()
-                // this.searchInput = d.querySelector('.search-input')
-                // this.searchVal = d.querySelector('.search-input input')
-                // this.searchBtn = d.querySelector('.search-btn')
-                // this.searchLayer = d.querySelector('.search-layer')
-                // this.categories = d.querySelector('.categories')
-                // this.parentCategories = d.querySelector('.parent-categories')
-                // this.childCategories = d.querySelector('.child-categories')
-                // this.productList = d.querySelector('.hot .product-list')
-                // this.floor = d.querySelector('.floor')
-                // this.elevator = d.querySelector('.elevator')
-                // this.searchTimer = null
-                // this.categoriesTimer = null
-                // this.elevatorTimer = null
-                // this.elevatorItem = null
-                // this.floors = null
-                // this.handleCart()
-                // this.handSearch()
-                // this.handCategories()
-                // this.handCarousel()
-                // this.handProductList()
-                // this.handFloor()
-                // this.handElevator()
+            // this.handElevator()
+            // this.searchInput = d.querySelector('.search-input')
+            // this.searchVal = d.querySelector('.search-input input')
+            // this.searchBtn = d.querySelector('.search-btn')
+            // this.searchLayer = d.querySelector('.search-layer')
+            // this.categories = d.querySelector('.categories')
+            // this.parentCategories = d.querySelector('.parent-categories')
+            // this.childCategories = d.querySelector('.child-categories')
+            // this.productList = d.querySelector('.hot .product-list')
+            // this.floor = d.querySelector('.floor')
+            // this.elevator = d.querySelector('.elevator')
+            // this.searchTimer = null
+            // this.categoriesTimer = null
+            // this.elevatorTimer = null
+            // this.elevatorItem = null
+            // this.floors = null
+            // this.handleCart()
+            // this.handSearch()
+            // this.handCategories()
+            // this.handCarousel()
+            // this.handProductList()
+            // this.handFloor()
+            // this.handElevator()
         },
         // 顶部购物车
-        handleCart: function() {
+        handleCart: function () {
             var _this = this
-                // 显示购物车中商品数量
+            // 显示购物车中商品数量
             this.loadCartsCount()
-                // 当鼠标进入购物车时
-            this.$cartBox.on('mouseenter', function() {
-                    if (this.cartTimer) {
-                        clearTimeout(this.cartTimer)
-                    }
-                    this.cartTimer = setTimeout(function() {
-                        // 显示下拉购物车
-                        _this.$cartContent.show()
-                            //添加等待框动画
-                        _this.$cartContent.html('<div class="loader"></div>')
-                            // 发送ajax请求
-                        utils.ajax({
-                            method: 'GET',
-                            url: '/carts',
-                            success: function(data) {
-                                if (data.code == 0) {
-                                    // 如果状态码为0则请求成功，渲染请求内容
-                                    _this.renderCart(data.data.cartList)
-                                } else {
-                                    //请求失败
-                                    _this.$cartContent.html('<span class="empty-cart">请求失败,请稍后再试</span>')
-                                }
-                            },
-                            error: function() {
+            // 当鼠标进入购物车时
+            this.$cartBox.on('mouseenter', function () {
+                if (this.cartTimer) {
+                    clearTimeout(this.cartTimer)
+                }
+                this.cartTimer = setTimeout(function () {
+                    // 显示下拉购物车
+                    _this.$cartContent.show()
+                    //添加等待框动画
+                    _this.$cartContent.html('<div class="loader"></div>')
+                    // 发送ajax请求
+                    utils.ajax({
+                        method: 'GET',
+                        url: '/carts',
+                        success: function (data) {
+                            if (data.code == 0) {
+                                // 如果状态码为0则请求成功，渲染请求内容
+                                _this.renderCart(data.data.cartList)
+                            } else {
+                                //请求失败
                                 _this.$cartContent.html('<span class="empty-cart">请求失败,请稍后再试</span>')
                             }
-                        })
-                    }, 300)
-                })
-                // 鼠标离开时隐藏下拉购物车
-            this.$cartBox.on('mouseleave', function() {
+                        },
+                        error: function () {
+                            _this.$cartContent.html('<span class="empty-cart">请求失败,请稍后再试</span>')
+                        }
+                    })
+                }, 300)
+            })
+            // 鼠标离开时隐藏下拉购物车
+            this.$cartBox.on('mouseleave', function () {
                 if (this.cartTimer) {
                     clearTimeout(this.cartTimer)
                 }
@@ -98,12 +98,12 @@
             })
         },
         // 改变购物车数字
-        loadCartsCount: function() {
+        loadCartsCount: function () {
             var _this = this
             utils.ajax({
                 method: 'GET',
                 url: '/carts/count',
-                success: function(data) {
+                success: function (data) {
                     if (data.code == 0) {
                         _this.$cartCount.html(data.data)
                     }
@@ -111,7 +111,7 @@
             })
         },
         // 渲染购物车下拉框
-        renderCart: function(list) {
+        renderCart: function (list) {
             var len = list.length
             if (len > 0) {
                 var html = '';
@@ -137,7 +137,7 @@
             }
         },
         //搜索框
-        handSearch: function() {
+        handSearch: function () {
             $('.serach-box').search({
                 searchInputSelector: '.search-input input',
                 searchBtnSelector: '.search-btn',
@@ -147,35 +147,35 @@
             })
         },
         // 焦点区域
-        handCategories: function() {
+        handCategories: function () {
             var _this = this
-                // 获取父级分类
+            // 获取父级分类
             this.getParentitems()
 
             // 利用事件代理监听父元素中子元素的切换
-            this.$parentCategories.on('mouseover', '.parent-categories-item', function() {
-                    var $elem = $(this)
-                        // 防抖
-                    if (_this.categoriesTimer) {
-                        clearTimeout(_this.categoriesTimer)
-                    }
-                    $elem.addClass('active').siblings().removeClass('active')
-                    _this.categoriesTimer = setTimeout(function() {
-                        //     // 显示右侧面板
-                        _this.$childCategories.show()
+            this.$parentCategories.on('mouseover', '.parent-categories-item', function () {
+                var $elem = $(this)
+                // 防抖
+                if (_this.categoriesTimer) {
+                    clearTimeout(_this.categoriesTimer)
+                }
+                $elem.addClass('active').siblings().removeClass('active')
+                _this.categoriesTimer = setTimeout(function () {
+                    //     // 显示右侧面板
+                    _this.$childCategories.show()
 
-                        //     // 获取触发事件元素的ID
-                        var pid = $elem.data('id')
-                        if (_this.childcache[pid]) {
-                            // 渲染面板内容
-                            _this.renderChildCategoies(_this.childcache[pid])
-                        } else {
-                            //     // 获取要生成的面板内容
-                            _this.getChildCategories(pid)
-                        }
-                    }, 300)
-                })
-                .on('mouseleave', function() {
+                    //     // 获取触发事件元素的ID
+                    var pid = $elem.data('id')
+                    if (_this.childcache[pid]) {
+                        // 渲染面板内容
+                        _this.renderChildCategoies(_this.childcache[pid])
+                    } else {
+                        //     // 获取要生成的面板内容
+                        _this.getChildCategories(pid)
+                    }
+                }, 300)
+            })
+                .on('mouseleave', function () {
                     if (_this.categoriesTimer) {
                         clearTimeout(_this.categoriesTimer)
                     }
@@ -184,42 +184,42 @@
                 })
         },
         //获取父级分类
-        getParentitems: function() {
+        getParentitems: function () {
             var _this = this
             utils.ajax({
                 url: '/categories/arrayCategories',
-                success: function(data) {
+                success: function (data) {
                     if (data.code == 0) {
                         _this.renderParentCategories(data.data)
                     } else {
                         _this.$parentCategories.html(data.messgae)
                     }
                 },
-                error: function() {
+                error: function () {
                     _this.$parentCategories.html(data.messgae)
                 }
             })
         },
         // 获取子级分类
-        getChildCategories: function(pid) {
+        getChildCategories: function (pid) {
             var _this = this
             utils.ajax({
                 url: '/categories/childArrayCategories',
                 data: {
                     pid: pid
                 },
-                success: function(data) {
+                success: function (data) {
                     if (data.code == 0) {
                         // 缓存子类数据
                         _this.childcache[pid] = data.data
-                            // 渲染面板内容
+                        // 渲染面板内容
                         _this.renderChildCategoies(data.data)
                     }
                 }
             })
         },
         // 渲染父级内容
-        renderParentCategories: function(list) {
+        renderParentCategories: function (list) {
             var _this = this
             var len = list.length
             var html = '<ul>'
@@ -230,7 +230,7 @@
             _this.$parentCategories.html(html)
         },
         // 渲染面板内容
-        renderChildCategoies: function(list) {
+        renderChildCategoies: function (list) {
             var len = list.length
             var html = '<ul>'
             for (var i = 0; i < len; i++) {
@@ -247,14 +247,14 @@
         },
 
         // 轮播图内容
-        handCarousel: function() {
+        handCarousel: function () {
             var _this = this
             utils.ajax({
                 url: '/ads/positionAds',
                 data: {
                     position: 1
                 },
-                success: function(data) {
+                success: function (data) {
                     if (data.code == 0) {
                         _this.renderCarousel(data.data)
                     }
@@ -262,11 +262,11 @@
             })
         },
         // 渲染轮播图界面
-        renderCarousel: function(list) {
-            var imgs = list.map(function(value) {
-                    return value.imageUrl
-                })
-                // 使用插件生成轮播图
+        renderCarousel: function (list) {
+            var imgs = list.map(function (value) {
+                return value.imageUrl
+            })
+            // 使用插件生成轮播图
             this.$swiper.carousel({
                 imgs: imgs,
                 width: 800,
@@ -277,32 +277,31 @@
             })
         },
         // 热销商品区域
-        handProductList: function() {
+        handProductList: function () {
             var _this = this
-                // 用防抖函数包装
-            var betterFn = utils.debounce(function() {
-                    // 判断是否已经加载过
-                    if (_this.$productList.data('isLoaded')) {
-                        return
-                    }
-                    //判断是否出现在可视区
-                    if (utils.isVisibility(_this.$productList)) {
-                        utils.ajax({
-                            method: 'GET',
-                            url: '/products/hot',
-                            success: function(data) {
-                                // 渲染热销界面
-                                _this.renderProductItem(data.data)
-                            }
-                        })
-                    }
+            // 防抖处理
+            var betterFn = utils.debounce(function () {
+                // 判断是否已经加载过
+                if (_this.$productList.data('isLoaded')) {
+                    return
+                }
+                //判断是否出现在可视区，如果出现在可视区，就发送请求
+                if (utils.isVisibility(_this.$productList)) {
+                    utils.ajax({
+                        method: 'GET',
+                        url: '/products/hot',
+                        success: function (data) {
+                            _this.renderProductItem(data.data)
+                        }
+                    })
+                }
 
-                }, 300)
-                // 绑定触发事件
+            }, 300)
+            // 绑定触发事件
             this.$win.on('scroll resize load', betterFn)
         },
         // 渲染热销界面
-        renderProductItem: function(list) {
+        renderProductItem: function (list) {
             var html = ''
             for (var i = 0, len = list.length; i < len; i++) {
                 html += `<li class="product-item clo-1">
@@ -313,18 +312,24 @@
             </li>`
             }
             this.$productList.html(html)
-                //保存加载状态
+            //保存加载状态
             this.$productList.data('isLoaded', true)
-                // 加载图片
-
+            // 加载图片
+            this.$productList.find('.product-item img').each(function () {
+                var $img = $(this)
+                var imgSrc = $img.data('src')
+                utils.loadImage(imgSrc, function () {
+                    $img.attr('src', imgSrc)
+                })
+            })
         },
         // 楼层区域
-        handFloor: function() {
+        handFloor: function () {
             var _this = this
             utils.ajax({
                 method: 'GET',
                 url: '/floors',
-                success: function(data) {
+                success: function (data) {
                     if (data.code == 0) {
                         _this.renderFloor(data.data)
                     }
@@ -332,10 +337,10 @@
             })
         },
         // 渲染楼层结构
-        renderFloor: function(list) {
+        renderFloor: function (list) {
             // 楼层结构
             var html = ''
-                // 电梯结构
+            // 电梯结构
             var elevatorHtml = ''
             for (var i = 0, len = list.length; i < len; i++) {
                 html += `<div class="floor-wrap clearfix f">
@@ -368,40 +373,40 @@
             <span class="elevator-item-num"><i class="iconfont icon-arrow-up"></i></span>
             <span class="elevator-item-text text-ellipsis" id="backToTop">顶部</span>
         </a>`
-                // 楼层结构
+            // 楼层结构
             this.$floor.html(html)
-                // 电梯结构
+            // 电梯结构
             this.$elevator.html(elevatorHtml)
             this.floors = d.querySelectorAll('.floor-wrap')
             this.elevatorItems = d.querySelectorAll('.elevator-item')
         },
-        handElevator: function() {
+        handElevator: function () {
             var _this = this
-                // 点击电梯，到达指定楼层
-            this.$elevator.on('click', function(ev) {
-                    var elem = ev.target
-                    var num = elem.getAttribute('data-num')
-                    if (elem.id == 'backToTop') {
-                        d.documentElement.scrollTop = 0
-                    } else if (elem.className == 'elevator-item-text text-ellipsis') {
-                        var floor = _this.floors[num]
-                        d.documentElement.scrollTop = floor.offsetTop
-                    }
-                })
-                // 页面加载完毕，电梯状态
-            w.addEventListener('load', betterSetElevator, false)
-            var betterSetElevator = function() {
-                    if (_this.elevatorTimer) {
-                        clearTimeout(_this.elevatorTimer)
-                    }
-                    _this.elevatorTimer = setTimeout(function() {
-                        _this.setElevator()
-                    }, 200)
+            // 点击电梯，到达指定楼层
+            this.$elevator.on('click', function (ev) {
+                var elem = ev.target
+                var num = elem.getAttribute('data-num')
+                if (elem.id == 'backToTop') {
+                    d.documentElement.scrollTop = 0
+                } else if (elem.className == 'elevator-item-text text-ellipsis') {
+                    var floor = _this.floors[num]
+                    d.documentElement.scrollTop = floor.offsetTop
                 }
-                // 监听滚动条事件
+            })
+            // 页面加载完毕，电梯状态
+            w.addEventListener('load', betterSetElevator, false)
+            var betterSetElevator = function () {
+                if (_this.elevatorTimer) {
+                    clearTimeout(_this.elevatorTimer)
+                }
+                _this.elevatorTimer = setTimeout(function () {
+                    _this.setElevator()
+                }, 200)
+            }
+            // 监听滚动条事件
             w.addEventListener('scroll', betterSetElevator, false)
         },
-        setElevator: function() {
+        setElevator: function () {
             var _this = this
             var res = this.getFloornum()
             if (res == -1) {
@@ -410,7 +415,7 @@
             } else {
                 // 显示电梯
                 utils.show(_this.elevator)
-                    // 遍历电梯
+                // 遍历电梯
                 for (var i = 0, len = _this.elevatorItems.length; i < len; i++) {
                     if (res == i) {
                         console.log(i)
@@ -421,7 +426,7 @@
                 }
             }
         },
-        getFloornum: function() {
+        getFloornum: function () {
             // 设置默认楼层号
             var num = -1
 

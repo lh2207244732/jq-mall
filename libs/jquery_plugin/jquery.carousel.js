@@ -1,5 +1,5 @@
 ;
-(function($) {
+(function ($) {
     function Carousel($elem, options) {
         //1.罗列属性
         this.$elem = $elem
@@ -19,19 +19,19 @@
         this.$btns = null
         this.$carouselImgsChildren = null
         this.$bntsChildren = null
-            //2.初始化
+        //2.初始化
         this.init()
 
         //3.绑定事件
         this.bindEvent()
-            //4.处理自动切换
+        //4.处理自动切换
         if (this.playInterval) {
             this.autoPlay()
         }
     }
     Carousel.prototype = {
         constructor: Carousel,
-        init: function() {
+        init: function () {
             this.$elem.addClass('carousel-wrap').css({
                 width: this.width,
                 height: this.height
@@ -43,7 +43,7 @@
             for (var i = 0; i < this.len; i++) {
                 var $carouselItem = $('<li></li>').addClass('carousel-item')
                 var $btn = $('<li></li>').html(i + 1)
-                    // var $img = $('<img>').attr('src', this.imgs[i])
+                // var $img = $('<img>').attr('src', this.imgs[i])
 
                 var $img = $('<img>')
                     // 每张图都设置为等待状态
@@ -77,33 +77,37 @@
                 this.$carouselImgsChildren.eq(this.activeIndex).css({ left: 0 })
             }
             // 轮播图懒加载处理
-            // 加载第一张图片
-            var $srcElem = this.$carouselImgsChildren.eq(this.activeIndex).find('img')
-                // 获取图片上的地址
-            var srcUrl = $srcElem.data('src')
-            var img = new Image()
-            img.onload = function() {
-                $srcElem.attr('src', srcUrl)
-            }
-            img.src = srcUrl
+            // 添加自定义事件imgShow
+            var _this = this
+            this.$elem.on('imgShow', function (ev, index) {
+                var $srcElem = _this.$carouselImgsChildren.eq(_this.activeIndex).find('img')
+                var srcUrl = $srcElem.data('src')
+                var img = new Image()
+                img.onload = function () {
+                    $srcElem.attr('src', srcUrl)
+                }
+                img.src = srcUrl
+            })
+            // 触发自定义事件，加载图片
+            this.$elem.trigger('imgShow', this.activeIndex)
 
         },
-        bindEvent: function() {
+        bindEvent: function () {
             var _this = this
-            this.$rightArrow.on('click', function() {
+            this.$rightArrow.on('click', function () {
                 this.now++
-                    this.setCorrectIndex()
+                this.setCorrectIndex()
                 this.tab()
             }.bind(this))
 
-            this.$leftArrow.on('click', function() {
+            this.$leftArrow.on('click', function () {
                 this.now--
-                    this.setCorrectIndex()
+                this.setCorrectIndex()
                 this.tab()
             }.bind(this))
 
             //用事件代理的方式实现底部指示按钮的点击事件处理
-            this.$btns.on('click', 'li', function() {
+            this.$btns.on('click', 'li', function () {
                 var index = $(this).index()
                 if (index == _this.activeIndex) {
                     return
@@ -112,16 +116,19 @@
                 _this.tab()
             })
         },
-        fade: function() {
+        fade: function () {
 
             this.$carouselImgsChildren.eq(this.activeIndex).fadeOut()
             this.$carouselImgsChildren.eq(this.now).fadeIn()
+            // 加载图片
+            this.$elem.trigger('imgShow', this.now)
+
 
             this.$bntsChildren.eq(this.activeIndex).removeClass('active')
             this.$bntsChildren.eq(this.now).addClass('active')
             this.activeIndex = this.now
         },
-        slide: function() {
+        slide: function () {
             //1.确定滑动的方向
             var direction = 1 // 规定 1是右滑 -1左滑
             if (this.activeIndex == this.len - 1 && this.now == 0) { //最后一张右滑到第一张
@@ -135,16 +142,19 @@
             }
             //2 把将要显示的移动到容器的左边或者右边
             this.$carouselImgsChildren.eq(this.now).css({ left: direction * this.width })
-                //3 把当前的移动出容器
+            //3 把当前的移动出容器
             this.$carouselImgsChildren.eq(this.activeIndex).animate({ left: -direction * this.width })
-                //4 把将要显示的显示出来
+            //4 把将要显示的显示出来
             this.$carouselImgsChildren.eq(this.now).animate({ left: 0 })
 
             this.$bntsChildren.eq(this.activeIndex).removeClass('active')
             this.$bntsChildren.eq(this.now).addClass('active')
+            // 加载图片
+            this.$elem.trigger('imgShow', this.now)
+
             this.activeIndex = this.now
         },
-        setCorrectIndex: function() {
+        setCorrectIndex: function () {
             if (this.now >= this.len) {
                 this.now = 0
             }
@@ -152,17 +162,17 @@
                 this.now = this.len - 1
             }
         },
-        autoPlay: function() {
+        autoPlay: function () {
             var timer = 0
-            timer = setInterval(function() {
+            timer = setInterval(function () {
                 this.$rightArrow.trigger('click')
             }.bind(this), this.playInterval)
 
-            this.$elem.on('mouseenter', function() {
+            this.$elem.on('mouseenter', function () {
                 clearInterval(timer)
             })
-            this.$elem.on('mouseleave', function() {
-                timer = setInterval(function() {
+            this.$elem.on('mouseleave', function () {
+                timer = setInterval(function () {
                     this.$rightArrow.trigger('click')
                 }.bind(this), this.playInterval)
             }.bind(this))
@@ -177,10 +187,10 @@
         loadingurl: './images/load.gif'
     }
     $.fn.extend({
-        carousel: function(options) {
-            return this.each(function() {
+        carousel: function (options) {
+            return this.each(function () {
                 var $elem = $(this)
-                    //单例模式创建轮播图对象
+                //单例模式创建轮播图对象
                 var carousel = $elem.data('carousel')
                 if (!carousel) {
                     options = $.extend({}, Carousel.DEFAULTS, options)
