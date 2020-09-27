@@ -442,7 +442,7 @@
             // 设置默认楼层号
             var num = -1
             $('.floor-wrap').each(function (index) {
-                console.log(index)
+                num = index
                 $floor = $(this)
                 if ($floor.offset().top > _this.$win.scrollTop() + _this.$win.height() / 2) {
                     num = index - 1
