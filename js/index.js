@@ -29,31 +29,10 @@
 
             //楼层区域
             this.$floor = $('.floor')
-            this.$elevator = $('.elevator')
             this.handFloor()
-            // this.handElevator()
-            // this.searchInput = d.querySelector('.search-input')
-            // this.searchVal = d.querySelector('.search-input input')
-            // this.searchBtn = d.querySelector('.search-btn')
-            // this.searchLayer = d.querySelector('.search-layer')
-            // this.categories = d.querySelector('.categories')
-            // this.parentCategories = d.querySelector('.parent-categories')
-            // this.childCategories = d.querySelector('.child-categories')
-            // this.productList = d.querySelector('.hot .product-list')
-            // this.floor = d.querySelector('.floor')
-            // this.elevator = d.querySelector('.elevator')
-            // this.searchTimer = null
-            // this.categoriesTimer = null
-            // this.elevatorTimer = null
-            // this.elevatorItem = null
-            // this.floors = null
-            // this.handleCart()
-            // this.handSearch()
-            // this.handCategories()
-            // this.handCarousel()
-            // this.handProductList()
-            // this.handFloor()
-            // this.handElevator()
+            // 电梯
+            this.$elevator = $('.elevator')
+            this.handElevator()
         },
         // 顶部购物车
         handleCart: function () {
@@ -273,18 +252,14 @@
                 height: 440,
                 playInterval: 0,
                 type: 'slide',
-                // loadingurl: '../images/load.gif'
+                loadingurl: './images/load.gif'
             })
         },
         // 热销商品区域
         handProductList: function () {
             var _this = this
             // 防抖处理
-            var betterFn = utils.debounce(function () {
-                // 判断是否已经加载过
-                if (_this.$productList.data('isLoaded')) {
-                    return
-                }
+            this.$productList.betterFn = utils.debounce(function () {
                 //判断是否出现在可视区，如果出现在可视区，就发送请求
                 if (utils.isVisibility(_this.$productList)) {
                     utils.ajax({
@@ -295,13 +270,13 @@
                         }
                     })
                 }
-
             }, 300)
             // 绑定触发事件
-            this.$win.on('scroll resize load', betterFn)
+            this.$win.on('scroll resize load', _this.$productList.betterFn)
         },
         // 渲染热销界面
         renderProductItem: function (list) {
+            var _this = this
             var html = ''
             for (var i = 0, len = list.length; i < len; i++) {
                 html += `<li class="product-item clo-1">
@@ -312,8 +287,6 @@
             </li>`
             }
             this.$productList.html(html)
-            //保存加载状态
-            this.$productList.data('isLoaded', true)
             // 加载图片
             this.$productList.find('.product-item img').each(function () {
                 var $img = $(this)
@@ -322,22 +295,33 @@
                     $img.attr('src', imgSrc)
                 })
             })
+            // 移除事件
+            this.$win.off('scroll resize load', _this.$productList.betterFn)
         },
         // 楼层区域
         handFloor: function () {
             var _this = this
-            utils.ajax({
-                method: 'GET',
-                url: '/floors',
-                success: function (data) {
-                    if (data.code == 0) {
-                        _this.renderFloor(data.data)
-                    }
+            // 防抖处理
+            this.$floor.betterFn = utils.debounce(function () {
+                // 判断是否出现在可视区
+                if (utils.isVisibility(_this.$floor)) {
+                    utils.ajax({
+                        method: 'GET',
+                        url: '/floors',
+                        success: function (data) {
+                            if (data.code == 0) {
+                                _this.renderFloor(data.data)
+                            }
+                        }
+                    })
                 }
-            })
+            }, 300)
+            // 绑定触发事件
+            this.$win.on('scroll resize load', _this.$floor.betterFn)
         },
         // 渲染楼层结构
         renderFloor: function (list) {
+            var _this = this
             // 楼层结构
             var html = ''
             // 电梯结构
@@ -375,72 +359,99 @@
         </a>`
             // 楼层结构
             this.$floor.html(html)
+            // 结构加载完毕，清除事件
+            this.$win.off('scroll load resize', _this.$floor.betterFn)
+            this.handFloorImage()
             // 电梯结构
             this.$elevator.html(elevatorHtml)
-            this.floors = d.querySelectorAll('.floor-wrap')
-            this.elevatorItems = d.querySelectorAll('.elevator-item')
+        },
+        handFloorImage: function () {
+            var _this = this
+            var $floors = $('.floor-wrap')
+            //已经加载图片的楼层个数
+            var totalLoadedNum = 0
+            //需要加载图片的楼层个数
+            var totalNum = $floors.length
+            $floors.betterFn = utils.debounce(function () {
+                // 遍历楼层
+                $floors.each(function () {
+                    $floor = $(this)
+                    // 判断是否出现在可视区
+                    if (utils.isVisibility($floor)) {
+                        var $imgs = $floor.find('img')
+                        $imgs.each(function () {
+                            var $img = $(this)
+                            var imgSrc = $img.data('src')
+                            utils.loadImage(imgSrc, function () {
+                                $img.attr('src', imgSrc)
+                            })
+                        })
+                        totalLoadedNum++
+                        if (totalLoadedNum == totalNum) {
+                            $floors.trigger('end')
+                        }
+                    }
+                })
+            }, 300)
+            // 绑定触发事件
+            this.$win.on('scroll resize load', $floors.betterFn)
+            $floors.on('end', function () {
+                // 清除事件
+                _this.$win.off('scroll resize load', $floors.betterFn)
+            })
         },
         handElevator: function () {
             var _this = this
             // 点击电梯，到达指定楼层
-            this.$elevator.on('click', function (ev) {
-                var elem = ev.target
-                var num = elem.getAttribute('data-num')
-                if (elem.id == 'backToTop') {
-                    d.documentElement.scrollTop = 0
-                } else if (elem.className == 'elevator-item-text text-ellipsis') {
-                    var floor = _this.floors[num]
-                    d.documentElement.scrollTop = floor.offsetTop
+            this.$elevator.on('click', '.elevator-item-text', function () {
+                $elem = $(this)
+                if ($elem.attr('id') == 'backToTop') {
+                    $('html,body').animate({
+                        scrollTop: 0
+                    })
+                } else {
+                    $('html,body').animate({
+                        scrollTop: $('.floor-wrap').eq($elem.data('num')).offset().top
+                    })
                 }
             })
-            // 页面加载完毕，电梯状态
-            w.addEventListener('load', betterSetElevator, false)
-            var betterSetElevator = function () {
-                if (_this.elevatorTimer) {
-                    clearTimeout(_this.elevatorTimer)
-                }
-                _this.elevatorTimer = setTimeout(function () {
-                    _this.setElevator()
-                }, 200)
-            }
-            // 监听滚动条事件
-            w.addEventListener('scroll', betterSetElevator, false)
+
+            // 页面加载完毕，根据楼层显示电梯状态
+            var betterFn = utils.debounce(function () {
+                _this.setElevator()
+            }, 300)
+            this.$win.on('scroll resize load', betterFn)
         },
         setElevator: function () {
-            var _this = this
-            var res = this.getFloornum()
-            if (res == -1) {
-                // 如果在-1层，隐藏电梯
-                utils.hide(_this.elevator)
+            var num = this.getFloornum()
+            // console.log(num)
+            if (num == -1) {
+                this.$elevator.hide()
             } else {
-                // 显示电梯
-                utils.show(_this.elevator)
-                // 遍历电梯
-                for (var i = 0, len = _this.elevatorItems.length; i < len; i++) {
-                    if (res == i) {
-                        console.log(i)
-                        _this.elevatorItems[i].className = 'elevator-item elevator-active'
-                    } else {
-                        _this.elevatorItems[i].className = 'elevator-item'
-                    }
-                }
+                this.$elevator
+                    .show()
+                    .find('.elevator-item ')
+                    .removeClass('elevator-active')
+                    .eq(num)
+                    .addClass('elevator-active')
             }
         },
+        // 获取楼层号
         getFloornum: function () {
+            var _this = this
             // 设置默认楼层号
             var num = -1
-
-            for (var i = 0, len = this.floors.length; i < len; i++) {
-                num = i
-                var floors = this.floors[i]
-                if (floors.offsetTop > d.documentElement.scrollTop) {
-                    num = i - 1
-                    break
+            $('.floor-wrap').each(function (index) {
+                console.log(index)
+                $floor = $(this)
+                if ($floor.offset().top > _this.$win.scrollTop() + _this.$win.height() / 2) {
+                    num = index - 1
+                    return false
                 }
-            }
-
+            })
             return num
         }
     }
+
     page.init()
 })(window, document);
